@@ -31,11 +31,11 @@ lazy val root = (project in file(".")).
     scalacOptions ++= Seq("-deprecation", "-unchecked"),
     pomIncludeRepository := { x => false },
 
-   resolvers ++= Seq(
-      "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/",
-      "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
-      "Second Typesafe repo" at "https://repo.typesafe.com/typesafe/maven-releases/",
-      Resolver.sonatypeRepo("public")
+    resolvers ++= Seq(
+       "sonatype-releases" at "https://oss.sonatype.org/content/repositories/releases/",
+       "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
+       "Second Typesafe repo" at "https://repo.typesafe.com/typesafe/maven-releases/",
+       Resolver.sonatypeRepo("public")
     ),
 
     pomIncludeRepository := { _ => false },
@@ -47,5 +47,10 @@ lazy val root = (project in file(".")).
         Some("snapshots" at nexus + "content/repositories/snapshots")
       else
         Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+
+    assemblyMergeStrategy in assembly := {
+      case PathList("META-INF", xs@_*) => MergeStrategy.discard
+      case x => MergeStrategy.first
     }
   )

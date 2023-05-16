@@ -1,5 +1,7 @@
 ### Local setup
 #### Mac
+#### Run Spark jobs on Spark cluster with Docker and docker-compose
+- Navigate to /spark-cluster/README.md
 #### Prepare local env
 - Enable Kubernetes in Docker Desktop or install minicube - https://minikube.sigs.k8s.io/docs/start/.
 - Install kubectl - https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
