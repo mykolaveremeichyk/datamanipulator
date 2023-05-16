@@ -1,5 +1,3 @@
-// give the user a nice default project!
-
 val sparkVersion = settingKey[String]("Spark version")
 
 lazy val root = (project in file(".")).

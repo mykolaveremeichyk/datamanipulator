@@ -1,16 +1,76 @@
 ### Local setup
 #### Mac
 #### Prepare local env
-- Enable Kubernetes in Docker Desktop or install minicube.
+- Enable Kubernetes in Docker Desktop or install minicube - https://minikube.sigs.k8s.io/docs/start/.
+- Install kubectl - https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
 - Install Spark Operator with helm
   - Repo: https://github.com/GoogleCloudPlatform/spark-on-k8s-operator
   - ```helm repo add spark-operator https://googlecloudplatform.github.io/spark-on-k8s-operator```
   - ```helm install my-release spark-operator/spark-operator --namespace spark-operator --create-namespace```
-- Prepare namespace for your application. Example - spark. 
-- Prepare service account -> spark.
-- Prepare Role with all permissions. -> generate with ChatGPT
-- Assign role to service account.
+- Prepare namespace for your application.
 ```
+kubectl create namespace spark
+```
+- Prepare service account -> spark.
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ServiceAccount
+metadata:
+  name: spark
+```
+```
+Save content to file:
+---------------------
+service-account-spark.yaml
+```
+```
+Execute:
+---------------------
+kubectl apply -f service-account-spark.yaml -n spark
+```
+- Prepare Role with all permissions.
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: spark-application-role.yaml
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  - services
+  - configmaps
+  - secrets
+  verbs:
+  - '*'
+- apiGroups:
+  - "batch"
+  resources:
+  - jobs
+  verbs:
+  - '*'
+- apiGroups:
+  - "sparkoperator.k8s.io"
+  resources:
+  - sparkapplications
+  - sparkapplications/finalizers
+  verbs:
+  - '*'
+```
+```
+Save content to file:
+---------------------
+spark-application-role.yaml
+```
+```
+Execute:
+---------------------
+kubectl apply -f spark-application-role.yaml -n spark
+```
+- Assign role to service account.
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -19,57 +79,66 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: spark-application-role
+  name: spark-application-role.yaml
 subjects:
 - kind: ServiceAccount
   name: spark
   namespace: spark
 ```
 ```
-kubectl apply -f <file.yaml> -n spark
+Save content to file:
+---------------------
+spark-role-binding.yaml
+```
+```
+Execute:
+---------------------
+kubectl apply -f spark-role-binding.yaml -n spark
 ```
 
 ### Run Spark application
 #### Local mode
-    - Use local value for master.
+- Use local value for master.
   ```  
   val conf = new SparkConf()
     .setMaster("local")
     .setAppName("my awesome app")
   ```
-    - Run your application from IDE.
+- Run your application from IDE.
 #### Cluster mode
-    - Download Apache Spark distribution - https://spark.apache.org/downloads.html
-    - Run master
-      ```
-      ./sbin/start-master.sh
-      ```
-      You can access master UI using the default URL http://localhost:8080/
-    - Run worker
-    ```
-    ./sbin/start-worker.sh <master-url>
-    ```
-  - Assembly jar of your application.
-  - Use spark-submit to deploy it.
+
+- Download Apache Spark distribution - https://spark.apache.org/downloads.html
+- Run master
+  ```
+  ./sbin/start-master.sh
+  ```
+You can access master UI using the default URL http://localhost:8080/
+- Run worker
+  ```
+  ./sbin/start-worker.sh <master-url>
+  ```
+- Assembly jar of your application.
+- Use spark-submit to deploy it.
   
   ```./bin/spark-submit --name "MyApp" --class com.arcadia.datamanipulator.CountingApp --master spark://localhost:7077  --driver-memory 1G --conf spark.executor.memory=4g --conf spark.cores.max=100 <path-to-spark-application-jar>```
 #### Docker Desktop K8
-    - Build docker of the application.
-    - Push docker image to local registry ECR
-    - Deploy the SparkApplication yaml to Kubernetes with kubectl.
+- Build docker of the application.
+- Push docker image to local registry ECR
+- Deploy the SparkApplication yaml to Kubernetes with kubectl.
+
 ```yaml
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: SparkApplication
 metadata:
-  name: spark-docker-scala
+  name: datamanipulator-spark-application
   namespace: spark
 spec:
   type: Scala
   mode: cluster
-  image: "localhost:5001/spark-pi:latest"
+  image: "localhost:5001/datamanipulator:0.0.1"
   imagePullPolicy: Always
-  mainClass: org.apache.spark.examples.SparkPi
-  mainApplicationFile: "local:///opt/spark/jars/spark-examples_2.12-3.3.2.jar"
+  mainClass: com.arcadia.datamanipulator.MainApplication
+  mainApplicationFile: "local:///opt/spark/jars/datamanipulator-assembly-0.0.1.jar"
   sparkVersion: "3.4.0"
   restartPolicy:
     type: Never
@@ -99,33 +168,42 @@ spec:
         mountPath: "/tmp"
 ```
 ```
-Save this yaml to SparkPI-spark-docker.yaml
+Save content to file:
+---------------------
+spark-pi-spark-application.yaml
 ```
-Use this command to deploy application to the local k8s cluster:
 ```
-kubectl apply -f SparkPI-spark-docker.yaml -n spark 
+Execute:
+---------------------
+kubectl apply -f spark-pi-spark-application.yaml -n spark
 ```
-  - Check status of the application. 
-    - using kubectl
-    ```
-      kubectl get sparkapplications -n spark
+- Check status of the application. 
+  - using kubectl
+  ```
+    kubectl get sparkapplications -n spark
   
-      NAME                  STATUS      ATTEMPTS   START                  FINISH                 AGE
-      local-k-means         COMPLETED   1          2023-05-10T15:52:55Z   2023-05-10T15:53:00Z   2d
-      sandbox               COMPLETED   1          2023-05-11T09:40:59Z   2023-05-11T09:41:05Z   30h
-      spark-docker-scala    COMPLETED   1          2023-05-12T11:47:02Z   2023-05-12T11:47:12Z   4h37m
-      stackoverflowkmeans   FAILED      1          2023-05-10T14:22:03Z   2023-05-10T14:22:11Z   2d2h
-    ```
-    - using Lens
+    NAME                  STATUS      ATTEMPTS   START                  FINISH                 AGE
+    local-k-means         COMPLETED   1          2023-05-10T15:52:55Z   2023-05-10T15:53:00Z   2d
+    sandbox               COMPLETED   1          2023-05-11T09:40:59Z   2023-05-11T09:41:05Z   30h
+    spark-docker-scala    COMPLETED   1          2023-05-12T11:47:02Z   2023-05-12T11:47:12Z   4h37m
+    stackoverflowkmeans   FAILED      1          2023-05-10T14:22:03Z   2023-05-10T14:22:11Z   2d2h
+  ```
+- using Lens
     
-    ![img.png](img.png)
+  ![img.png](img.png)
 
 #### AWS EKS
-  - Install aws cli
-    - https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
-  - Build docker of the application.
-  - Push docker image to AWS ECR
-  - Deploy the SparkApplication yaml to EKS.
-  - Check status of the application. 
+- Install aws cli
+  - https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+- Build docker of the application.
+- Push docker image to AWS ECR
+- Deploy the SparkApplication yaml to EKS.
+- Check status of the application. 
 
-#### Argo CD and Argo workflows
+### CD (deployment to local cluster with Argo tools)
+#### Argo CD
+https://argo-cd.readthedocs.io/en/stable/getting_started/
+
+#### Argo workflows
+https://argoproj.github.io/argo-workflows/quick-start/
+

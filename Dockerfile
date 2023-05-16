@@ -17,7 +17,6 @@
 ARG SPARK_IMAGE=apache/spark:v3.4.0
 FROM ${SPARK_IMAGE}
 
-COPY examples/jars/SparkScalaCourse-assembly-0.1.jar /opt/spark/examples/jars/SparkScalaCourse-assembly-0.1.jar
-COPY u.data /opt/spark/work-dir
+COPY target/scala-2.12/datamanipulator-assembly-0.0.1.jar /opt/spark/jars/datamanipulator-assembly-0.0.1.jar
 
 ENTRYPOINT ["/opt/entrypoint.sh"]
