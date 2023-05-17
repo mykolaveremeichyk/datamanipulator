@@ -1,7 +1,5 @@
 ### Local setup
 #### Mac
-#### Run Spark jobs on Spark cluster with Docker and docker-compose
-- Navigate to /spark-cluster/README.md
 #### Prepare local env
 - Enable Kubernetes in Docker Desktop or install minicube - https://minikube.sigs.k8s.io/docs/start/.
 - Install kubectl - https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
@@ -123,6 +121,8 @@ You can access master UI using the default URL http://localhost:8080/
 - Use spark-submit to deploy it.
   
   ```./bin/spark-submit --name "MyApp" --class com.arcadia.datamanipulator.CountingApp --master spark://localhost:7077  --driver-memory 1G --conf spark.executor.memory=4g --conf spark.cores.max=100 <path-to-spark-application-jar>```
+#### Run Spark jobs locally on Spark cluster with Docker and docker-compose
+- For more details refer to /spark-cluster/README.md
 #### Docker Desktop K8
 - Build docker of the application.
 - Push docker image to local registry ECR
