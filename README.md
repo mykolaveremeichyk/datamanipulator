@@ -1,6 +1,6 @@
-### Local setup
-#### Mac
-#### Prepare local env
+## Local setup
+___
+### Mac: Prepare local env
 - Enable Kubernetes in Docker Desktop or install minicube - https://minikube.sigs.k8s.io/docs/start/.
 - Install kubectl - https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/
 - Install Spark Operator with helm
@@ -96,8 +96,9 @@ Execute:
 kubectl apply -f spark-role-binding.yaml -n spark
 ```
 
-### Run Spark application
-#### Local mode
+## Run Spark application
+___
+### Local mode
 - Use local value for master.
   ```  
   val conf = new SparkConf()
@@ -105,7 +106,7 @@ kubectl apply -f spark-role-binding.yaml -n spark
     .setAppName("my awesome app")
   ```
 - Run your application from IDE.
-#### Cluster mode
+### Cluster mode
 
 - Download Apache Spark distribution - https://spark.apache.org/downloads.html
 - Run master
@@ -121,9 +122,9 @@ You can access master UI using the default URL http://localhost:8080/
 - Use spark-submit to deploy it.
   
   ```./bin/spark-submit --name "MyApp" --class com.arcadia.datamanipulator.CountingApp --master spark://localhost:7077  --driver-memory 1G --conf spark.executor.memory=4g --conf spark.cores.max=100 <path-to-spark-application-jar>```
-#### Run Spark jobs locally on Spark cluster with Docker and docker-compose
+### Run Spark jobs locally on Spark cluster with Docker and docker-compose
 - For more details refer to /spark-cluster/README.md
-#### Docker Desktop K8
+### Docker Desktop K8
 - Build docker of the application.
 - Push docker image to local registry ECR
 - Deploy the SparkApplication yaml to Kubernetes with kubectl.
@@ -194,7 +195,7 @@ kubectl apply -f spark-pi-spark-application.yaml -n spark
     
   ![img.png](img.png)
 
-#### AWS EKS
+### AWS EKS
 - Install aws cli
   - https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 - Build docker of the application.
@@ -202,10 +203,15 @@ kubectl apply -f spark-pi-spark-application.yaml -n spark
 - Deploy the SparkApplication yaml to EKS.
 - Check status of the application. 
 
-### CD (deployment to local cluster with Argo tools)
-#### Argo CD
+## CD (deployment to local cluster with Argo tools)
+___
+### Argo CD
 https://argo-cd.readthedocs.io/en/stable/getting_started/
 
-#### Argo workflows
+### Argo workflows
 https://argoproj.github.io/argo-workflows/quick-start/
 
+## Testing Spark job
+### Unit tests
+### Integration tests
+### End to end tests

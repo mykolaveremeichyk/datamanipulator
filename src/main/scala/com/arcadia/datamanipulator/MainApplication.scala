@@ -1,6 +1,6 @@
 package com.arcadia.datamanipulator
 
-import org.apache.log4j._
+import com.arcadia.datamanipulator.MainApplication.pi
 import org.apache.spark.{SparkConf, SparkContext}
 
 /**
@@ -15,7 +15,8 @@ object MainApplicationLocal extends App {
     .setAppName("my awesome app")
 
   val sc = new SparkContext(conf)
-  SparkPi.calculatePi(sc)
+  val pi = SparkPi.calculatePi(sc)
+  println(s"PI: $pi")
 //  Runner.run(conf, inputFile, outputFile)
 }
 
@@ -23,10 +24,9 @@ object MainApplicationLocal extends App {
   * Use this when submitting the app to a cluster with spark-submit
   * */
 object MainApplication extends App {
-  // spark-submit command should supply all necessary config elements
-//  Runner.run(new SparkConf(), inputFile, outputFile)
-  val sc = new SparkContext(new SparkConf())
-  SparkPi.calculatePi(sc)
+  val sc: SparkContext = new SparkContext(new SparkConf())
+  val pi = SparkPi.calculatePi(sc)
+  println(s"PI: $pi")
 }
 
 object Runner {
