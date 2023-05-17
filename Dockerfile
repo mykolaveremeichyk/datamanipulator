@@ -18,5 +18,6 @@ ARG SPARK_IMAGE=apache/spark:v3.4.0
 FROM ${SPARK_IMAGE}
 
 COPY target/scala-2.12/datamanipulator-assembly-0.0.1.jar /opt/spark/jars/datamanipulator-assembly-0.0.1.jar
+COPY src/main/resources/timeusage/atussum.csv /opt/spark/work-dir/src/main/resources/timeusage/atussum.csv
 
 ENTRYPOINT ["/opt/entrypoint.sh"]
